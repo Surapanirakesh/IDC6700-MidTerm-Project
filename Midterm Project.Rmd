@@ -1,0 +1,105 @@
+---
+title: "Midterm Project"
+author: "Rakesh Kumar Surapani"
+date: "2/27/2022"
+output: html_document
+---
+
+Visualization - 1
+
+```{r}
+library(readr)
+covid_19_india <- read_csv("state_level_daily.csv")
+```
+```{r}
+library(lubridate)
+covid_19_india = subset(covid_19_india, covid_19_india["State_Name"] == "Tamil Nadu" | covid_19_india["State_Name"] == "Gujarat" | covid_19_india["State_Name"] == "Maharashtra" | covid_19_india["State_Name"] == "Delhi")
+```
+
+```{r}
+# converting Character Date Column into a proper Date Format (yyyy-mm-dd) column 
+covid_19_india$Date = as.Date(covid_19_india$Date, format = "%d-%b-%y")
+
+# filtering the data based on date range from 2020-04-25 to 2020-05-05 
+covid_19_india = subset(covid_19_india, covid_19_india["Date"] >= "2020-04-25" & covid_19_india["Date"] <= "2020-05-05")
+
+# Removed unwanted columns
+covid_19_india = covid_19_india[c("Date", "Confirmed", "Deceased", "State_Name")]
+
+```
+
+
+Visualization -1
+```{r}
+
+library(ggpubr)
+p1 <- ggplot(covid_19_india, aes(x = Date, y = Confirmed))+
+  geom_line(aes(color = State_Name, linetype = State_Name), size =1)+
+  geom_point(aes(shape = State_Name), size = 1)+
+  xlab("Dates")+
+  ylab("New Case(s) per day")+
+  theme(text=element_text(size=13, family="Times"),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+ 
+
+p2 <- ggplot(covid_19_india, aes(x = Date, y = Deceased))+
+  geom_line(aes(color = State_Name, linetype = State_Name), size=1)+
+  geom_point(aes(shape = State_Name), size = 1)+
+  xlab("Dates")+
+  ylab("Death(s) per day")+
+  theme(text=element_text(size=13, family="Times"),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+text.p <- ggparagraph(text = "COVID-19 New Cases and Deaths comparision between four state in India", face = "bold",  family="Times", size = 15, color = "black")
+  
+figure <- ggarrange(text.p,
+                    ggarrange(p1, p2, ncol = 2,
+                    common.legend = TRUE, legend = "bottom",
+                    widths = c(1.5,1.5)
+                    ),
+                    nrow = 2,
+                    heights = c(0.1,1)
+)
+figure
+```
+
+
+
+
+
+
+Visualization - 2
+
+
+```{r}
+us_covid19_daily <- read_csv("us_covid19_daily.csv")
+# Removed unwanted columns
+us_covid19_daily = us_covid19_daily[c("dateChecked", "positive", "death", "deathIncrease", "positiveIncrease")]
+
+
+
+us_covid19_daily[is.na(us_covid19_daily)] = 0
+
+us_covid19_daily$dateChecked <- as.Date(us_covid19_daily$dateChecked, format ='%Y-%m-%d')
+
+# filtering the data based on date range from 2020-04-01 to 2020-04-29 
+us_covid19_daily = subset(us_covid19_daily, us_covid19_daily["dateChecked"] >= "2020-04-01" & us_covid19_daily["dateChecked"] <= "2020-04-29")
+
+names(us_covid19_daily) = c("Date", "Total_Cases", "Total_death", "Deaths_per_Day", "New_Cases per Day")
+```
+
+
+```{r}
+library(reshape2)
+meltdata = melt(us_covid19_daily, id.vars = "Date")
+print(meltdata)
+
+ggplot(meltdata, aes(x = Date, y = value)) +
+  geom_line(stat="identity", size =1, color = "blue") +
+  geom_point(size = 1, alpha = 0.5)+
+  facet_wrap(~variable,  scales = "free") +
+  xlab("Date")+
+  ylab("Count")+
+  ggtitle("Covid-19 spread statistics from Apr-01 to Apr-29")+
+  theme(text=element_text(size=15, family="Times"))
+```
